@@ -1,8 +1,10 @@
 package main
 
 import (
-	"book_shop_api/controller"
-	"book_shop_api/database"
+	"book_shop_api/internal/database"
+	"book_shop_api/internal/repository/pgrepo"
+	"book_shop_api/internal/service"
+	"book_shop_api/internal/transport/http"
 	"fmt"
 
 	"github.com/gin-gonic/gin"
@@ -13,11 +15,14 @@ func main() {
 	database.DatabaseConnection()
 
 	r := gin.Default()
-	r.GET("/books/:id", controller.ReadBook)
-	r.GET("/books", controller.ReadBooks)
-	r.POST("/books", controller.CreateBook)
-	r.PUT("/books/:id", controller.UpdateBook)
-	r.DELETE("/books/:id", controller.DeleteBook)
+	pgRepo := pgrepo.NewBookRepo(database.DB)
+	bookSrv := service.NewBookService(pgRepo)
+	bookHandler := http.NewBookHandler(bookSrv)
+	r.GET("/books/:id", bookHandler.GetBook)
+	r.GET("/books", bookHandler.GetBooks)
+	r.POST("/books", bookHandler.CreateBook)
+	r.PUT("/books/:id", bookHandler.UpdateBook)
+	r.DELETE("/books/:id", bookHandler.DeleteBook)
 
 	r.Run(":8080")
 

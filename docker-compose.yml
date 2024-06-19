@@ -1,0 +1,36 @@
+
+version: '3.9'
+
+networks:
+  ps: 
+   name: ps
+   driver: bridge
+
+services:
+    postgres:
+      image: postgres:latest
+      container_name: ps-psql
+      ports:
+        - "7777:5432"
+      environment:
+        - POSTGRES_DB=postgres
+        - POSTGRES_USER=postgres
+        - POSTGRES_PASSWORD=postgres
+      volumes:
+        - ./data:/var/lib/postgresql/data
+      networks:
+        - ps  
+    app:
+      image: book_shop_api:local
+      container_name: bsa-app
+      ports:
+        - "8080:8080"
+      depends_on:
+        - postgres
+      build:
+        context: .
+        dockerfile: Dockerfile
+      networks:
+      - ps 
+      command: ./app   
+ 
